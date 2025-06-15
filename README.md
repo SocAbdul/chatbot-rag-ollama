@@ -1,73 +1,73 @@
-🦙 Streamlit RAG App with Ollama (phi3 Model)
-Overview
-This guide shows you how to build a Retrieval-Augmented Generation (RAG) app using:
+🦙 Aplicación RAG con Streamlit y Ollama (Modelo phi3)
+Descripción General
+Esta guía te muestra cómo construir una aplicación de Generación Aumentada por Recuperación (RAG) usando:
 
-Streamlit for a web interface
-Ollama to run a local LLM (phi3, a lightweight model)
-LangChain for document retrieval and chaining
-Chroma as the local vector database
-You can upload a PDF or text file and ask questions—your local AI will answer using information from your document!
+Streamlit para la interfaz web.
+Ollama para ejecutar un LLM local (phi3, un modelo ligero).
+LangChain para la recuperación de documentos y el encadenamiento de procesos.
+Chroma como la base de datos vectorial local.
+¡Puedes subir un archivo PDF o de texto y hacer preguntas! Tu IA local responderá usando la información de tu documento.
 
-Prerequisites
-Windows 10/11 (works on Linux/Mac too)
-Python 3.9+
-Ollama installed and running
-Internet for first setup
-Installation
-Install Python dependencies
+Prerrequisitos
+Windows 10/11 (también funciona en Linux/Mac).
+Python 3.9+.
+Ollama instalado y en ejecución.
+Conexión a internet para la configuración inicial.
+Instalación
+1. Instalar dependencias de Python
+
+Bash
+
 conda create -n rag_env python=3.10 -y
 conda activate rag_env
 pip install streamlit langchain chromadb pypdf ollama requests
+2. Instalar e iniciar Ollama
 
-2.	Install and launch Ollama
-Download Ollama: https://ollama.com/download
-After installation, open a terminal and run:
+Descarga Ollama desde: https://ollama.com/download
+
+Después de la instalación, abre una terminal y ejecuta:
+
+Bash
 
 ollama run phi3
+Esto descargará e iniciará el modelo ligero phi3 localmente.
 
-This will pull and start the lightweight phi3 model locally.
-
-⸻
-
-Usage
-	1.	Save the app code (below) as rag_ollama_app.py
-	2.	Run the Streamlit app:
+Uso
+Guarda el código de la aplicación (que se encuentra más abajo) como rag_ollama_app.py.
+Ejecuta la aplicación de Streamlit:
+Bash
 
 streamlit run rag_ollama_app.py
+Abre tu navegador en http://localhost:8501.
+¡Sube tu documento y haz preguntas!
+Código con Anotaciones
+Python
 
-
-	3.	Open your browser to http://localhost:8501
-	4.	Upload your document and ask questions!
-
-⸻
-
-Code with Annotations
-
-# --- Imports: Core libraries for the app ---
-import streamlit as st                           # For web UI
+# --- Importaciones: Librerías principales para la app ---
+import streamlit as st                  # Para la interfaz web
 import os
-import tempfile                                 # For temporary file handling
-import requests                                 # To check if Ollama server is running
+import tempfile                         # Para el manejo de archivos temporales
+import requests                         # Para verificar si el servidor de Ollama está en ejecución
 
-# --- LangChain & dependencies for RAG pipeline ---
-from langchain.document_loaders import PyPDFLoader, TextLoader      # For loading PDF/TXT files
-from langchain.embeddings import OllamaEmbeddings                   # To embed text using Ollama models
-from langchain.vectorstores import Chroma                           # To store and search embeddings
-from langchain.llms import Ollama                                   # For connecting to Ollama LLM
-from langchain.chains import RetrievalQA                            # LangChain chain for RAG
+# --- LangChain y dependencias para el pipeline RAG ---
+from langchain.document_loaders import PyPDFLoader, TextLoader    # Para cargar archivos PDF/TXT
+from langchain.embeddings import OllamaEmbeddings                 # Para vectorizar texto usando modelos de Ollama
+from langchain.vectorstores import Chroma                         # Para almacenar y buscar los vectores (embeddings)
+from langchain.llms import Ollama                                 # Para conectarse al LLM de Ollama
+from langchain.chains import RetrievalQA                          # Cadena de LangChain para RAG
 
-# --- 1. Streamlit Page Config ---
-st.set_page_config(page_title="RAG with Ollama (Lightweight)", layout="centered")
-st.title("📄🔗 RAG Q&A App with Ollama (phi3)")
+# --- 1. Configuración de la página de Streamlit ---
+st.set_page_config(page_title="RAG con Ollama (Ligero)", layout="centered")
+st.title("📄🔗 App de Preguntas y Respuestas RAG con Ollama (phi3)")
 st.markdown(
-    "Upload a PDF or TXT file. Ask questions. Answers are generated using the lightweight [phi3](https://ollama.com/library/phi3) model via Ollama."
+    "Sube un archivo PDF o TXT. Haz preguntas. Las respuestas son generadas usando el modelo ligero [phi3](https://ollama.com/library/phi3) a través de Ollama."
 )
 
-# --- 2. Ollama Status Check ---
+# --- 2. Verificación del estado de Ollama ---
 def is_ollama_running():
     """
-    Checks if Ollama server is up and running at localhost:11434.
-    If not running, shows an error and stops the app.
+    Verifica si el servidor de Ollama está activo y en ejecución en localhost:11434.
+    Si no está en ejecución, muestra un error y detiene la aplicación.
     """
     try:
         r = requests.get("http://localhost:11434")
@@ -77,116 +77,103 @@ def is_ollama_running():
 
 if not is_ollama_running():
     st.error(
-        "Ollama is not running! Please open a terminal and run:\n\n"
-        "`ollama run phi3`\n\nThen restart this app."
+        "¡Ollama no se está ejecutando! Por favor, abre una terminal y ejecuta:\n\n"
+        "`ollama run phi3`\n\nLuego, reinicia esta aplicación."
     )
-    st.stop()   # Stop app if Ollama isn't running
+    st.stop()  # Detiene la app si Ollama no está funcionando
 
-# --- 3. User Inputs: File upload and question ---
-uploaded_file = st.file_uploader("Upload your PDF or TXT file", type=["pdf", "txt"])
-query = st.text_input("Ask a question about your document:")
+# --- 3. Entradas de usuario: Carga de archivo y pregunta ---
+uploaded_file = st.file_uploader("Sube tu archivo PDF o TXT", type=["pdf", "txt"])
+query = st.text_input("Haz una pregunta sobre tu documento:")
 
-# --- 4. Store VectorDB in Streamlit Session State ---
+# --- 4. Almacenar la VectorDB en el estado de la sesión de Streamlit ---
 if "vectorstore" not in st.session_state:
     st.session_state.vectorstore = None
 
 def process_file(uploaded_file):
     """
-    Loads the uploaded document, splits into chunks, embeds using phi3,
-    and builds a Chroma vector DB.
+    Carga el documento subido, lo divide en fragmentos, los vectoriza usando phi3
+    y construye una base de datos vectorial con Chroma.
     """
     suffix = "." + uploaded_file.name.split(".")[-1]
-    # Save uploaded file to a temporary file
+    # Guarda el archivo subido en un archivo temporal
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
         tmp.write(uploaded_file.read())
         file_path = tmp.name
 
-    # Choose loader based on file extension
+    # Elige el cargador según la extensión del archivo
     if file_path.endswith(".pdf"):
         loader = PyPDFLoader(file_path)
     else:
         loader = TextLoader(file_path)
 
-    docs = loader.load_and_split()  # Split doc into small text chunks
+    docs = loader.load_and_split()  # Divide el documento en pequeños trozos de texto
 
-    # Use Ollama phi3 model for embedding text chunks
-    embeddings = OllamaEmbeddings(model="phi3")  # Lightweight & fast
+    # Usa el modelo phi3 de Ollama para vectorizar los trozos de texto
+    embeddings = OllamaEmbeddings(model="phi3")  # Ligero y rápido
 
-    # Create a temporary Chroma vector DB directory
+    # Crea un directorio temporal para la base de datos vectorial de Chroma
     chroma_dir = tempfile.mkdtemp()
     vectordb = Chroma.from_documents(docs, embeddings, persist_directory=chroma_dir)
     return vectordb, chroma_dir
 
-# --- 5. Handle Document Upload ---
+# --- 5. Manejar la carga del documento ---
 if uploaded_file and st.session_state.vectorstore is None:
-    with st.spinner("Processing your document (embedding)..."):
+    with st.spinner("Procesando tu documento (vectorizando)..."):
         vectordb, chroma_dir = process_file(uploaded_file)
         st.session_state.vectorstore = vectordb
         st.session_state.chroma_dir = chroma_dir
-    st.success("✅ Document processed. Ask your questions below!")
+    st.success("✅ ¡Documento procesado! Haz tus preguntas abajo.")
 
-# --- 6. Main RAG Q&A Pipeline ---
+# --- 6. Pipeline principal de Preguntas y Respuestas (RAG) ---
 if query and st.session_state.vectorstore:
-    with st.spinner("Generating answer with phi3..."):
+    with st.spinner("Generando respuesta con phi3..."):
         llm = Ollama(
-            model="phi3",                     # Use phi3, the lightweight LLM
+            model="phi3",                     # Usa phi3, el LLM ligero
             base_url="http://localhost:11434",
-            temperature=0.1,                  # Low temp: more factual answers
-            max_tokens=400,                   # Reasonable answer length
+            temperature=0.1,                  # Temperatura baja: respuestas más factuales
+            max_tokens=400,                   # Longitud de respuesta razonable
         )
-        # LangChain RetrievalQA: combines retrieval with LLM generation
+        # RetrievalQA de LangChain: combina la recuperación con la generación del LLM
         qa_chain = RetrievalQA.from_chain_type(
             llm=llm,
-            chain_type="stuff",               # Simple retrieval
+            chain_type="stuff",               # Método de recuperación simple
             retriever=st.session_state.vectorstore.as_retriever(),
-            return_source_documents=True      # Show which doc chunks were used
+            return_source_documents=True      # Muestra qué fragmentos del doc se usaron
         )
         try:
             result = qa_chain(query)
-            st.subheader("💡 Answer")
+            st.subheader("💡 Respuesta")
             st.write(result["result"])
-            # Show retrieved text chunks as context
-            with st.expander("🔎 See retrieved context"):
+            # Muestra los fragmentos de texto recuperados como contexto
+            with st.expander("🔎 Ver el contexto recuperado"):
                 for i, doc in enumerate(result['source_documents']):
-                    st.markdown(f"**Chunk {i+1}:**\n\n{doc.page_content}")
+                    st.markdown(f"**Fragmento {i+1}:**\n\n{doc.page_content}")
         except Exception as e:
-            st.error(f"Error during QA: {str(e)}")
+            st.error(f"Error durante la generación de la respuesta: {str(e)}")
 
-# --- 7. (Optional) Cleanup: Remove temp files/DBs if you wish ---
+# --- 7. (Opcional) Limpieza: Elimina archivos/DBs temporales si lo deseas ---
 
 st.markdown("---")
 st.markdown(
-    "Lightweight and local — everything stays on your computer. Powered by [Ollama](https://ollama.com) and [LangChain](https://python.langchain.com/)."
+    "Ligero y local — todo permanece en tu ordenador. Creado con [Ollama](https://ollama.com) y [LangChain](https://python.langchain.com/)."
 )
-
-
-⸻
-
-Troubleshooting
-	•	Ollama not running?
-Open a terminal and run:
-ollama run phi3
-	•	No answer or slow response?
-	•	Ensure Ollama has finished downloading the model.
-	•	Try restarting the Streamlit app.
-	•	For large PDFs, allow a few extra seconds for embedding.
-	•	Use a different model:
-Change "phi3" in the code to any other model name you have pulled with Ollama (e.g., "llama2", "mistral", etc.)
-
-⸻
-
-Notes & Customization
-	•	Supports both PDF and TXT files.
-	•	Local only: All files and processing are local, no cloud or data leak.
-	•	Vector DB is temporary: New upload creates a new vector store.
-	•	Advanced features: You can add authentication, history, multi-file support, chat mode, or Markdown rendering.
-
-⸻
-
-Credits
-	•	Ollama
-	•	LangChain
-	•	ChromaDB
-	•	Streamlit
-
-⸻
+Solución de Problemas
+¿Ollama no está en ejecución?
+Abre una terminal y ejecuta: ollama run phi3
+¿No hay respuesta o la respuesta es muy lenta?
+Asegúrate de que Ollama haya terminado de descargar el modelo.
+Intenta reiniciar la aplicación de Streamlit.
+Para archivos PDF grandes, espera unos segundos adicionales para la vectorización.
+Usar un modelo diferente:
+Cambia "phi3" en el código por cualquier otro nombre de modelo que hayas descargado con Ollama (por ejemplo, "llama2", "mistral", etc.).
+Notas y Personalización
+Soporta archivos PDF y TXT.
+Solo local: Todos los archivos y el procesamiento son locales, sin acceso a la nube ni fugas de datos.
+La base de datos vectorial es temporal: Cada nueva carga crea un nuevo almacén de vectores.
+Funcionalidades avanzadas: Puedes añadir autenticación, historial, soporte para múltiples archivos, modo de chat o renderizado de Markdown.
+Créditos
+Ollama
+LangChain
+ChromaDB
+Streamlit
