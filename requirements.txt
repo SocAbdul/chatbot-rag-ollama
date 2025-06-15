@@ -1,0 +1,9 @@
+ollama
+streamlit
+langchain
+langchain-ollama
+langchain-openai
+langchain-text-splitters
+pypdf
+chromadb
+requests
