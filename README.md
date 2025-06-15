@@ -12,9 +12,13 @@ Chroma como la base de datos vectorial local.
 ### Prerrequisitos
 
 Windows 10/11 (también funciona en Linux/Mac).
+
 Python 3.9+.
+
 Ollama instalado y en ejecución.
+
 Conexión a internet para la configuración inicial.
+
 Instalación
 
 1. Instalar dependencias de Python
@@ -184,17 +188,28 @@ st.markdown(
 Solución de Problemas
 
 ¿Ollama no está en ejecución?
+
 Abre una terminal y ejecuta: ollama run phi3
+
 ¿No hay respuesta o la respuesta es muy lenta?
+
 Asegúrate de que Ollama haya terminado de descargar el modelo.
+
 Intenta reiniciar la aplicación de Streamlit.
+
 Para archivos PDF grandes, espera unos segundos adicionales para la vectorización.
+
 Usar un modelo diferente:
+
 Cambia "phi3" en el código por cualquier otro nombre de modelo que hayas descargado con Ollama (por ejemplo, "llama2", "mistral", etc.).
+
 Notas y Personalización
 Soporta archivos PDF y TXT.
+
 Solo local: Todos los archivos y el procesamiento son locales, sin acceso a la nube ni fugas de datos.
+
 La base de datos vectorial es temporal: Cada nueva carga crea un nuevo almacén de vectores.
+
 Funcionalidades avanzadas: Puedes añadir autenticación, historial, soporte para múltiples archivos, modo de chat o renderizado de Markdown.
 
 
